@@ -4,3 +4,4 @@ scikit-learn
 streamlit
 matplotlib
 altair
+altair==5.0.0
