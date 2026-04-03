@@ -1,31 +1,44 @@
-import streamlit as st
+from flask import Flask, request, render_template
 import joblib
 import pandas as pd
 import pickle
 
+app = Flask(__name__)
+
+# Load model and files
 model = joblib.load("model.pkl")
 features = pickle.load(open("features.pkl", "rb"))
 le = pickle.load(open("brand_encoder.pkl", "rb"))
 
-st.title("📱 AI Mobile Price Predictor")
+@app.route("/", methods=["GET", "POST"])
+def home():
+    prediction = None
 
-brand = st.selectbox("Brand", ["Samsung", "Apple", "Xiaomi", "Realme", "OnePlus"])
-ram = st.slider("RAM (GB)", 1, 16)
-battery = st.slider("Battery Power", 1000, 7000)
-memory = st.slider("Internal Memory", 8, 512)
-camera = st.slider("Primary Camera", 2, 108)
-weight = st.slider("Weight", 100, 300)
+    if request.method == "POST":
+        try:
+            brand = request.form["brand"]
+            ram = int(request.form["ram"])
+            battery = int(request.form["battery"])
+            memory = int(request.form["memory"])
+            camera = int(request.form["camera"])
+            weight = int(request.form["weight"])
 
-brand_encoded = le.transform([brand])[0]
+            brand_encoded = le.transform([brand])[0]
 
-input_data = pd.DataFrame([[ram, battery, memory, camera, weight, brand_encoded]], columns=features)
+            input_data = pd.DataFrame(
+                [[ram, battery, memory, camera, weight, brand_encoded]],
+                columns=features
+            )
 
-if st.button("Predict Price"):
-    prediction = model.predict(input_data)
-    st.success(f"💰 Estimated Price: ₹{int(prediction[0])}")
+            pred = model.predict(input_data)
+            prediction = int(pred[0])
 
-data = pd.read_csv("mobile_data.csv")
-if 'price_range' in data.columns:
-    data['price'] = data['price_range'] * 10000
+        except Exception as e:
+            prediction = f"Error: {str(e)}"
+
+    return render_template("index.html", prediction=prediction)
 
 
+# IMPORTANT: Only this block should run locally
+if __name__ == "__main__":
+    app.run(debug=True)
