@@ -1,8 +1,9 @@
 import streamlit as st
-import pickle
+import joblib
 import pandas as pd
+import pickle
 
-model = pickle.load(open("model.pkl", "rb"))
+model = joblib.load("model.pkl")
 features = pickle.load(open("features.pkl", "rb"))
 le = pickle.load(open("brand_encoder.pkl", "rb"))
 
