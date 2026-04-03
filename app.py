@@ -1,28 +1,27 @@
-from flask import Flask, request, render_template
-import pickle
+from flask import Flask, render_template, request
 import pandas as pd
-import os
+import joblib
 
 app = Flask(__name__)
 
 # Load model and files
-model = pickle.load(open("model.pkl", "rb"))
-features = pickle.load(open("features.pkl", "rb"))
-le = pickle.load(open("brand_encoder.pkl", "rb"))
+model = joblib.load("model.pkl")
+features = joblib.load("features.pkl")
+le = joblib.load("brand_encoder.pkl")
 
-@app.route('/')
+@app.route("/")
 def home():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
     try:
-        brand = request.form['brand']
-        ram = int(request.form['ram'])
-        battery = int(request.form['battery'])
-        memory = int(request.form['memory'])
-        camera = int(request.form['camera'])
-        weight = int(request.form['weight'])
+        brand = request.form["brand"]
+        ram = int(request.form["ram"])
+        battery = int(request.form["battery"])
+        memory = int(request.form["memory"])
+        camera = int(request.form["camera"])
+        weight = int(request.form["weight"])
 
         brand_encoded = le.transform([brand])[0]
 
@@ -31,13 +30,11 @@ def predict():
 
         prediction = model.predict(input_data)[0]
 
-        return render_template('index.html',
-                               prediction_text=f"💰 Estimated Price: ₹{int(prediction)}")
+        return render_template("index.html", prediction_text=f"Estimated Price: ₹{int(prediction)}")
 
     except Exception as e:
         return str(e)
 
-# 🚨 IMPORTANT FOR RAILWAY
+# IMPORTANT FOR RAILWAY
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=8080)
