@@ -26,18 +26,23 @@ def predict():
 
         brand_encoded = le.transform([brand])[0]
 
-        input_data = pd.DataFrame([[ram, battery, memory, camera, weight, brand_encoded]],
-                                  columns=features)
+        input_data = pd.DataFrame(
+            [[ram, battery, memory, camera, weight, brand_encoded]],
+            columns=features
+        )
 
         prediction = model.predict(input_data)[0]
 
-        return render_template("index.html",
-                               prediction_text=f"Estimated Price: ₹{int(prediction)}")
+        return render_template(
+            "index.html",
+            prediction_text=f"Estimated Price: ₹{int(prediction)}"
+        )
 
     except Exception as e:
         return str(e)
 
-# IMPORTANT FOR RAILWAY
+
+# For local run (Railway uses gunicorn + Procfile)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
