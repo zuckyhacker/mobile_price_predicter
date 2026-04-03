@@ -1,13 +1,14 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, render_template
+import pickle
 import pandas as pd
-import joblib
+import os
 
 app = Flask(__name__)
 
-# Load model and files
-model = joblib.load("model.pkl")
-features = joblib.load("features.pkl")
-le = joblib.load("brand_encoder.pkl")
+# Load model files
+model = pickle.load(open("model.pkl", "rb"))
+features = pickle.load(open("features.pkl", "rb"))
+le = pickle.load(open("brand_encoder.pkl", "rb"))
 
 @app.route("/")
 def home():
@@ -30,11 +31,13 @@ def predict():
 
         prediction = model.predict(input_data)[0]
 
-        return render_template("index.html", prediction_text=f"Estimated Price: ₹{int(prediction)}")
+        return render_template("index.html",
+                               prediction_text=f"Estimated Price: ₹{int(prediction)}")
 
     except Exception as e:
         return str(e)
 
 # IMPORTANT FOR RAILWAY
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
